@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mera MF Tracker</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1a1d21;--mu:#6b7280;--bd:#e5e7eb;--g:#0a8f4d;--r:#d63c3c;--ac:#2563eb}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#181b21;--tx:#e8eaed;--mu:#9aa0a6;--bd:#2a2e36;--g:#3ddc84;--r:#ff6b6b;--ac:#6ea0ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 2px}
+.sub{color:var(--mu);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+.card,.box{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px}
+.card small{color:var(--mu);display:block;font-size:12px}
+.card b{font-size:18px}
+.g{color:var(--g)}.r{color:var(--r)}
+.box{margin-bottom:14px}
+.box h3{margin:0 0 8px;font-size:15px}
+input,button,select{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+button{cursor:pointer;background:var(--ac);color:#fff;border:0}
+button.ghost{background:transparent;color:var(--mu);border:1px solid var(--bd)}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{background:transparent;color:var(--mu);border:1px solid var(--bd)}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.row input{flex:1;min-width:130px}
+.res div{padding:7px 4px;border-bottom:1px solid var(--bd);cursor:pointer;font-size:13px}
+.res div:hover{background:var(--bg)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{font-size:12px;color:var(--mu);font-weight:600}
+th:first-child,td:first-child{text-align:left;white-space:normal;min-width:220px}
+td small{color:var(--mu);display:block;font-size:11px}
+.tg{font-size:10px;border:1px solid var(--bd);border-radius:6px;padding:0 5px;color:var(--mu);white-space:nowrap}
+.x{background:none;color:var(--mu);border:0;padding:2px 8px;font-size:16px}
+.bars>div{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px}
+.bars .n{width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .t{flex:1;height:10px;background:var(--bg);border-radius:5px;position:relative}
+.bars .t i{position:absolute;top:0;height:100%;border-radius:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips button{background:transparent;color:var(--tx);border:1px solid var(--bd);font-size:12px;padding:4px 9px;border-radius:14px}
+.chips button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+ul.ins{margin:0;padding-left:18px}ul.ins li{margin:5px 0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;max-width:420px;width:92%}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<main>
+<h1>📈 Mera Mutual Fund Tracker</h1>
+<div class="sub" id="upd">Loading…</div>
+<div class="cards" id="sum"></div>
+
+<div class="tabs">
+  <button id="tp" class="on" onclick="show('p')">Portfolio</button>
+  <button id="ta" onclick="show('a')">Analysis</button>
+  <button id="tc" onclick="show('c')">Compare</button>
+</div>
+
+<div id="v_p">
+  <div class="box">
+    <h3>Naya fund add karo</h3>
+    <input id="q" placeholder="Fund ka naam search karo" style="width:100%">
+    <div class="res" id="res"></div>
+    <div class="row" id="addrow" style="display:none">
+      <span id="pick" style="flex-basis:100%;font-size:13px"></span>
+      <input id="units" type="number" step="any" placeholder="Units">
+      <input id="inv" type="number" step="any" placeholder="Kul invest kiya (₹)">
+      <button onclick="addFund()">Add</button>
+    </div>
+  </div>
+  <div class="box tw"><table>
+    <thead><tr><th>Fund</th><th>Units</th><th>Invested</th><th>NAV</th><th>1 Din</th><th>Current</th><th>P/L ₹</th><th>P/L %</th><th>1Y trend</th><th></th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table></div>
+  <div class="row">
+    <button class="ghost" onclick="refreshNav()">Refresh NAV</button>
+    <button class="ghost" onclick="exportJ()">Export backup</button>
+    <button class="ghost" onclick="$('imp').click()">Import backup</button>
+    <input id="imp" type="file" accept=".json" style="display:none" onchange="importJ(this)">
+  </div>
+</div>
+
+<div id="v_a" style="display:none"></div>
+<div id="v_c" style="display:none"></div>
+
+<p class="sub">Data sirf tumhare browser me save hota hai. NAV mfapi.in (AMFI data) se page khulte hi live aata hai. Doosre device ke liye Export/Import use karo.</p>
+</main>
+
+<dialog id="dg">
+  <b id="dt"></b>
+  <div class="row"><select id="ty" onchange="hint()" style="width:100%">
+    <option value="sip">SIP / Purchase (units jodo)</option>
+    <option value="sale">Sale / Redeem (units ghatao)</option>
+    <option value="set">Seedha edit (naya total set karo)</option>
+  </select></div>
+  <div class="row"><input id="eu" type="number" step="any"><input id="ea" type="number" step="any"></div>
+  <div id="hi" class="sub" style="margin-top:6px"></div>
+  <details style="margin-top:10px"><summary class="sub">NAV link badlo (galat fund match hua ho to)</summary>
+    <input id="rq" placeholder="Fund search" style="width:100%;margin-top:6px"><div class="res" id="rr"></div>
+  </details>
+  <div class="row">
+    <button onclick="applyEd()">Save</button>
+    <button class="ghost" onclick="$('dg').close()">Cancel</button>
+    <button class="ghost" onclick="rm()" style="margin-left:auto;color:var(--r)">Delete</button>
+  </div>
+</dialog>
+
+<script>
+const API='https://api.mfapi.in/mf';
+// [naam, search key, plan, units, cost, current value (29 Sep 2026), folio, alt search]
+const SEED=[
+['Invesco India Large & Mid Cap Fund','Invesco India Large & Mid Cap','D',59.108,7000,7509.08,'','Invesco India Growth Opportunities'],
+['Mirae Asset Balanced Advantage Fund','Mirae Asset Balanced Advantage','D',2377.964,28237.25,36282.97],
+['Mirae Asset ELSS Tax Saver Fund','Mirae Asset ELSS Tax Saver','R',4501.157,150602.25,214790.71],
+['Mirae Asset ELSS Tax Saver Fund','Mirae Asset ELSS Tax Saver','D',184.982,6000,10102.42],
+['Mirae Asset Flexi Cap Fund','Mirae Asset Flexi Cap','D',1445.862,24000,23902.99],
+['Mirae Asset Healthcare Fund','Mirae Asset Healthcare','D',278.822,12000,14558.18],
+['Mirae Asset Midcap Fund','Mirae Asset Midcap','D',1588.941,36000,66671.96],
+['Motilal Oswal Large and Midcap Fund','Motilal Oswal Large and Midcap','D',414.477,15500,16536.80],
+['Nippon India Aggressive Hybrid Fund','Nippon India Aggressive Hybrid','D',109.018,12000,12787.21,'','Nippon India Equity Hybrid'],
+['Nippon India Growth Mid Cap Fund','Nippon India Growth Mid Cap','D',1.593,7000,7608.49,'','Nippon India Growth Fund'],
+['Nippon India Nifty 500 Momentum 50 Index Fund','Nippon India Nifty 500 Momentum 50','D',3168.996,26000,26248.16],
+['Nippon India Small Cap Fund','Nippon India Small Cap','R',2553.19,115221.82,461549.09],
+['Nippon India Small Cap Fund','Nippon India Small Cap','D',728.506,86500,148876.17],
+['Quant Business Cycle Fund','Quant Business Cycle','D',2334.228,38500,39095.05],
+['Quant Mid Cap Fund','Quant Mid Cap','D',149.605,36000,36214.37],
+['Quant Momentum Fund','Quant Momentum','D',1050.556,14999.26,16008.58],
+['UTI Nifty 50 Index Fund','UTI Nifty 50 Index','D',208.95,35000,33424.50],
+['Bandhan ELSS Tax Saver Fund','Bandhan ELSS','R',1478.53,89002.48,218951.96,'2031925','Bandhan Tax Advantage'],
+['Bandhan Infrastructure Fund','Bandhan Infrastructure','D',779.83,45000,43977.68,'5439629'],
+['Bandhan ELSS Tax Saver Fund','Bandhan ELSS','D',168.31,30000,29003.68,'2031925','Bandhan Tax Advantage'],
+['Bandhan Small Cap Fund','Bandhan Small Cap','D',489.79,25000,27753.23,'2031925'],
+['Bandhan Large & Mid Cap Fund','Bandhan Large & Mid Cap','D',128.48,20000,20656.98,'2031925','Bandhan Core Equity'],
+['Bandhan ELSS Tax Saver Fund','Bandhan ELSS','R',99.22,10000,17097.64,'2676354','Bandhan Tax Advantage'],
+['Bandhan Infrastructure Fund','Bandhan Infrastructure','D',212.58,12000,11987.95,'2031925'],
+['Bandhan ELSS Tax Saver Fund','Bandhan ELSS','R',11.15,579.67,1651.77,'2676354','Bandhan Tax Advantage'],
+['Tata ELSS Tax Saver Fund','Tata ELSS Tax Saver','R',4823.97,93914.22,216739.44,'','Tata India Tax Savings'],
+['Tata Gold ETF Fund of Fund','Tata Gold ETF','D',1550.28,34000,34754.57],
+['Tata Silver ETF Fund of Fund','Tata Silver ETF','D',1116.92,33742.79,32039.30],
+['Tata ELSS Tax Saver Fund','Tata ELSS Tax Saver','D',476.54,21000,24831.21,'','Tata India Tax Savings'],
+['Tata Infrastructure Fund','Tata Infrastructure','D',68.58,12000,13178.56],
+['Union Multicap Fund','Union Multicap','D',7518.74,112000,133608.03],
+['Parag Parikh Large Cap Fund','Parag Parikh Large Cap','D',8134.01,77000,74262.66],
+['DSP Quant Fund','DSP Quant','D',2692.21,53000,57742.56],
+['Kotak Quant Fund','Kotak Quant','D',2409.37,36942.54,35718.93]
+];
+const $=id=>document.getElementById(id);
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const cls=n=>n>=0?'g':'r';
+const sg=n=>(n>=0?'+':'−')+Math.abs(n).toFixed(2);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let S=null;try{S=JSON.parse(localStorage.getItem('mf2'))}catch(e){}
+if(!S||!S.h)S={h:SEED.map((s,i)=>({id:'s'+i,name:s[0],q:s[1],plan:s[2],units:s[3],inv:s[4],ref:s[5]/s[3],folio:s[6]||'',alt:s[7]||'',code:null,real:0}))};
+const save=()=>{try{localStorage.setItem('mf2',JSON.stringify(S))}catch(e){}};
+let info={},CS=null,cur=null,pickF=null;
+const fj=async u=>{const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(r.status);return r.json()};
+const toHist=d=>d.map(x=>{const[a,b,c]=x.date.split('-');return[Date.UTC(c,b-1,a),+x.nav]}).reverse();
+
+function show(t){['p','a','c'].forEach(k=>{$('v_'+k).style.display=k==t?'':'none';$('t'+k).className=k==t?'on':''})}
+
+function srch(inp,box,cb){let t;inp.oninput=()=>{clearTimeout(t);const v=inp.value.trim();if(v.length<3){box.innerHTML='';return}
+  t=setTimeout(async()=>{try{const r=await fj(API+'/search?q='+encodeURIComponent(v));box.innerHTML='';
+    r.slice(0,10).forEach(f=>{const d=document.createElement('div');d.textContent=f.schemeName;d.onclick=()=>{box.innerHTML='';inp.value='';cb(f)};box.appendChild(d)})}
+  catch(e){box.textContent='Search fail hua'}},350)}}
+srch($('q'),$('res'),f=>{pickF=f;$('pick').textContent='Selected: '+f.schemeName;$('addrow').style.display='flex'});
+srch($('rq'),$('rr'),f=>{cur.code=f.schemeCode;cur.unv=false;save();$('dg').close();load()});
+
+function addFund(){
+  const u=parseFloat($('units').value),a=parseFloat($('inv').value);
+  if(!pickF||!(u>0)||!(a>=0)){alert('Units aur invested amount daalo');return}
+  S.h.push({id:'n'+Date.now(),name:pickF.schemeName,q:'',plan:/direct/i.test(pickF.schemeName)?'D':'R',units:u,inv:a,ref:1,folio:'',alt:'',code:pickF.schemeCode,real:0});
+  save();pickF=null;$('units').value=$('inv').value='';$('addrow').style.display='none';load();
+}
+
+// ---- NAV matching: screenshot ke 29-Sep-2026 NAV se sahi scheme code dhundta hai ----
+async function resolve(h){
+  let first=null;
+  for(const q of [h.q,h.alt].filter(Boolean)){
+    let r=[];try{r=await fj(API+'/search?q='+encodeURIComponent(q))}catch(e){continue}
+    const c=r.filter(x=>/growth/i.test(x.schemeName)&&!/idcw|dividend|bonus|payout|reinvest/i.test(x.schemeName)&&(/direct/i.test(x.schemeName)==(h.plan=='D')));
+    for(const x of c.slice(0,8)){
+      try{const j=await fj(API+'/'+x.schemeCode);
+        info[x.schemeCode]={hist:toHist(j.data),name:j.meta.scheme_name};
+        const t=j.data.find(e=>e.date=='29-09-2026');
+        if(t&&Math.abs(+t.nav/h.ref-1)<0.0015){h.code=x.schemeCode;h.unv=false;return}
+        if(!first)first=x.schemeCode}catch(e){}
+    }
+  }
+  if(first){h.code=first;h.unv=true}
+}
+
+async function load(){
+  const un=S.h.filter(h=>!h.code&&h.units>0.0005);
+  for(let i=0;i<un.length;i+=4){
+    $('upd').textContent=`Funds match ho rahe hain (pehli baar)… ${i}/${un.length}`;
+    await Promise.all(un.slice(i,i+4).map(resolve));save();
+  }
+  $('upd').textContent='NAV update ho raha hai…';
+  const codes=[...new Set(S.h.filter(h=>h.code).map(h=>h.code))].filter(c=>!info[c]);
+  let fail=0;
+  await Promise.all(codes.map(async c=>{try{const j=await fj(API+'/'+c);info[c]={hist:toHist(j.data),name:j.meta.scheme_name}}catch(e){fail++}}));
+  render();
+  if(fail)$('upd').textContent+=` · ⚠ ${fail} fund ka NAV nahi aaya (mfapi.in), thodi der baad Refresh NAV dabao`;
+}
+function refreshNav(){info={};load()}
+
+const act=()=>S.h.filter(h=>h.units>0.0005);
+function val(h){const n=info[h.code];if(!n||!n.hist.length)return null;const H=n.hist,L=H[H.length-1],P=H[H.length-2]||L;
+  return{nav:L[1],ts:L[0],prev:P[1],cur:h.units*L[1],day:h.units*(L[1]-P[1]),H,name:n.name}}
+function cat(n){
+  if(/gold|silver/i.test(n))return'Gold/Silver';if(/elss|tax/i.test(n))return'ELSS';if(/small/i.test(n))return'Small Cap';
+  if(/large.*mid/i.test(n))return'Large & Mid Cap';if(/mid ?cap/i.test(n))return'Mid Cap';if(/flexi|multi/i.test(n))return'Flexi/Multi Cap';
+  if(/balanced|hybrid/i.test(n))return'Hybrid';if(/nifty|index/i.test(n))return'Index';if(/infra|health/i.test(n))return'Sectoral';
+  if(/quant|momentum|business cycle/i.test(n))return'Quant/Thematic';if(/large cap/i.test(n))return'Large Cap';return'Other'}
+function ret(H,d){const L=H[H.length-1],t=L[0]-d*864e5;let p=null;
+  for(let i=H.length-1;i>=0;i--)if(H[i][0]<=t){p=H[i];break}
+  if(!p)return null;const r=L[1]/p[1];return d>365?(Math.pow(r,365/d)-1)*100:(r-1)*100}
+const dt=ts=>new Date(ts).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit',timeZone:'UTC'});
+const rp=x=>x==null?'—':`<span class="${cls(x)}">${sg(x)}%</span>`;
+
+function spark(H){
+  const h=H.slice(-250).map(p=>p[1]);if(h.length<2)return'';
+  const mn=Math.min(...h),mx=Math.max(...h),W=90,Hh=26;
+  const p=h.map((v,i)=>(i/(h.length-1)*W).toFixed(1)+','+(Hh-(v-mn)/((mx-mn)||1)*Hh).toFixed(1)).join(' ');
+  return`<svg width="${W}" height="${Hh}"><polyline points="${p}" fill="none" stroke="${h[h.length-1]>=h[0]?'var(--g)':'var(--r)'}" stroke-width="1.5"/></svg>`}
+
+function render(){
+  const D=act().map(h=>{const v=val(h);return{h,v,cur:v?v.cur:0,pl:v?v.cur-h.inv:0}}).sort((a,b)=>b.cur-a.cur);
+  const ok=D.filter(x=>x.v);
+  const T={inv:0,cur:0,day:0,ts:0};
+  ok.forEach(x=>{T.inv+=x.h.inv;T.cur+=x.cur;T.day+=x.v.day;T.ts=Math.max(T.ts,x.v.ts)});
+  const real=S.h.reduce((t,h)=>t+(h.real||0),0),PL=T.cur-T.inv,PP=T.inv?PL/T.inv*100:0;
+  $('sum').innerHTML=[['Invested',inr(T.inv),''],['Current value',inr(T.cur),''],
+    ['Total P/L',(PL>=0?'+':'−')+inr(Math.abs(PL))+' ('+sg(PP)+'%)',cls(PL)],
+    ['Aaj ka change',(T.day>=0?'+':'−')+inr(Math.abs(T.day)),cls(T.day)],
+    ['Realised P/L (sale)',(real>=0?'+':'−')+inr(Math.abs(real)),cls(real)]
+  ].map(a=>`<div class="card"><small>${a[0]}</small><b class="${a[2]}">${a[1]}</b></div>`).join('');
+  $('upd').textContent=T.ts?`${act().length} funds · Latest NAV: ${dt(T.ts)}`:'';
+  $('tb').innerHTML=D.map(x=>{const{h,v}=x;
+    const tg=`<span class="tg">${h.plan=='D'?'Direct':'Regular'}${h.folio?' · '+h.folio:''}</span>`;
+    const eb=`<button class="x" onclick="ed('${h.id}')">✎</button>`;
+    if(!v)return`<tr><td>${esc(h.name)} ${tg}<small>${h.code?'NAV load nahi hua':'NAV match nahi mila — ✎ se link karo'}</small></td><td>${h.units.toFixed(3)}</td><td>${inr(h.inv)}</td><td colspan=6></td><td>${eb}</td></tr>`;
+    const pp=h.inv?x.pl/h.inv*100:0,dp=(v.nav/v.prev-1)*100;
+    return`<tr><td>${esc(h.name)} ${tg}${h.unv?`<small style="color:var(--r)">⚠ ${esc(v.name)} — sahi hai? ✎ se check karo</small>`:''}</td>
+    <td>${h.units.toFixed(3)}</td><td>${inr(h.inv)}</td><td>${v.nav.toFixed(4)}<small>${dt(v.ts)}</small></td>
+    <td class="${cls(dp)}">${sg(dp)}%<small>${v.day>=0?'+':'−'}${inr(Math.abs(v.day))}</small></td>
+    <td>${inr(x.cur)}</td><td class="${cls(x.pl)}">${x.pl>=0?'+':'−'}${inr(Math.abs(x.pl))}</td>
+    <td class="${cls(pp)}">${sg(pp)}%</td><td>${spark(v.H)}</td><td>${eb}</td></tr>`}).join('')||'<tr><td colspan=10 style="text-align:center;color:var(--mu)">Koi fund nahi.</td></tr>';
+  analysis(ok,T);compare(ok,T);
+}
+
+function grp(L,f){const m={};L.forEach(x=>{const k=f(x),g=m[k]||(m[k]={cur:0,inv:0,n:0});g.cur+=x.cur;g.inv+=x.h.inv;g.n++});return m}
+function ab(m,T){return Object.entries(m).sort((a,b)=>b[1].cur-a[1].cur).map(([k,g])=>{
+  const p=g.cur/T.cur*100,pl=(g.cur/g.inv-1)*100;
+  return`<div><span class="n">${esc(k)} (${g.n})</span><span class="t"><i style="left:0;width:${p}%;background:var(--ac)"></i></span><span style="width:130px;text-align:right">${p.toFixed(1)}% · <span class="${cls(pl)}">${sg(pl)}%</span></span></div>`}).join('')}
+
+function analysis(L,T){
+  if(!L.length){$('v_a').innerHTML='<div class="box">NAV load hone ka wait karo…</div>';return}
+  const byC=grp(L,x=>cat(x.h.name)),byA=grp(L,x=>x.h.name.split(' ')[0]),byP=grp(L,x=>x.h.plan=='D'?'Direct':'Regular');
+  const name=x=>x.h.name.replace(/ Fund$/,'')+(x.h.plan=='R'?' (Reg)':'');
+  const byPct=[...L].sort((a,b)=>(b.pl/b.h.inv)-(a.pl/a.h.inv));
+  const w=byPct.map(x=>({n:name(x),p:x.h.inv?x.pl/x.h.inv*100:0}));
+  const m=Math.max(1,...w.map(b=>Math.abs(b.p)));
+  const top3=L.slice(0,3).reduce((s,x)=>s+x.cur,0)/T.cur*100;
+  const reg=byP.Regular,multi=Object.entries(byC).filter(([k,g])=>g.n>=3).map(([k,g])=>`${k} (${g.n} funds)`);
+  const y1=L.map(x=>({n:name(x),r:ret(x.v.H,365)})).filter(x=>x.r!=null).sort((a,b)=>b.r-a.r);
+  const worst=byPct[byPct.length-1],best=byPct[0];
+  const ins=[
+    `Total ${L.length} funds me ${inr(T.cur)} ka portfolio hai. Sabse bada holding <b>${esc(name(L[0]))}</b> (${(L[0].cur/T.cur*100).toFixed(1)}%). Top 3 funds milkar ${top3.toFixed(0)}% hain.`,
+    `Sabse zyada allocation <b>${Object.entries(byC).sort((a,b)=>b[1].cur-a[1].cur)[0][0]}</b> me hai.`,
+    reg?`Regular plan me ${inr(reg.cur)} (${(reg.cur/T.cur*100).toFixed(0)}%) hai. Regular plan ka expense ratio Direct se zyada hota hai (ELSS me 3 saal ka lock-in dhyan rakho).`:'Sab funds Direct plan me hain 👍',
+    multi.length?`Overlap: ${multi.join(', ')} — ek hi category ke kai funds hain, holdings repeat ho sakti hain.`:'',
+    `Best: <b>${esc(name(best))}</b> (${sg(best.pl/best.h.inv*100)}%). Weakest: <b>${esc(name(worst))}</b> (${sg(worst.pl/worst.h.inv*100)}%).`,
+    y1.length?`Pichle 1 saal me NAV ke hisaab se best <b>${esc(y1[0].n)}</b> (${sg(y1[0].r)}%), weakest <b>${esc(y1[y1.length-1].n)}</b> (${sg(y1[y1.length-1].r)}%).`:''
+  ].filter(Boolean);
+  $('v_a').innerHTML=`<div class="box"><h3>Insights</h3><ul class="ins">${ins.map(i=>`<li>${i}</li>`).join('')}</ul></div>
+  <div class="two"><div class="box bars"><h3>Category allocation <span class="sub">(% · P/L%)</span></h3>${ab(byC,T)}</div>
+  <div class="box bars"><h3>AMC allocation</h3>${ab(byA,T)}<h3 style="margin-top:14px">Direct vs Regular</h3>${ab(byP,T)}</div></div>
+  <div class="box bars"><h3>Fund-wise P/L %</h3>${w.map(b=>{const wd=Math.abs(b.p)/m*50,st=b.p>=0?`left:50%;width:${wd}%;background:var(--g)`:`right:50%;width:${wd}%;background:var(--r)`;
+    return`<div><span class="n" title="${esc(b.n)}">${esc(b.n)}</span><span class="t"><i style="${st}"></i></span><span class="${cls(b.p)}" style="width:60px;text-align:right">${sg(b.p)}%</span></div>`}).join('')}</div>`;
+}
+
+function compare(L,T){
+  if(!CS)CS=L.slice(0,3).map(x=>x.h.id);
+  const chips=L.map(x=>`<button class="${CS.includes(x.h.id)?'on':''}" onclick="tg('${x.h.id}')">${esc(x.h.name.replace(/ Fund$/,''))}${x.h.plan=='R'?' (R)':''}${x.h.folio?' '+x.h.folio.slice(-3):''}</button>`).join('');
+  const sl=L.filter(x=>CS.includes(x.h.id)).slice(0,5);
+  let out=`<div class="box"><h3>Compare karne ke liye funds chuno (max 5)</h3><div class="chips">${chips}</div>`;
+  if(sl.length){
+    out+=`<div class="tw"><table style="min-width:700px"><thead><tr><th>Fund</th><th>Category</th><th>Value share</th><th>1M</th><th>3M</th><th>6M</th><th>1Y</th><th>3Y (CAGR)</th><th>Tumhara P/L</th></tr></thead><tbody>`+
+    sl.map(x=>{const H=x.v.H,pp=x.h.inv?x.pl/x.h.inv*100:0;
+      return`<tr><td>${esc(x.h.name)} <span class="tg">${x.h.plan=='D'?'Direct':'Regular'}</span></td><td>${cat(x.h.name)}</td><td>${(x.cur/T.cur*100).toFixed(1)}%</td>
+      <td>${rp(ret(H,30))}</td><td>${rp(ret(H,91))}</td><td>${rp(ret(H,182))}</td><td>${rp(ret(H,365))}</td><td>${rp(ret(H,1095))}</td><td>${rp(pp)}</td></tr>`}).join('')+`</tbody></table></div>`;
+    out+=chart(sl)}
+  $('v_c').innerHTML=out+'</div>';
+}
+function tg(id){CS=CS.includes(id)?CS.filter(i=>i!=id):[...CS,id];render()}
+
+function chart(L){
+  const W=660,H=230,cols=['#2563eb','#e11d48','#059669','#d97706','#7c3aed'];
+  const ser=L.map(x=>{const h=x.v.H,e=h[h.length-1][0]-365*864e5,s=h.filter(p=>p[0]>=e);return s.map(p=>[p[0],p[1]/s[0][1]*100])});
+  const all=ser.flat();if(!all.length)return'';
+  const x0=Math.min(...all.map(p=>p[0])),x1=Math.max(...all.map(p=>p[0])),y0=Math.min(...all.map(p=>p[1]),100),y1=Math.max(...all.map(p=>p[1]),100);
+  const px=t=>((t-x0)/(x1-x0||1)*(W-50)+40).toFixed(1),py=v=>(H-18-(v-y0)/(y1-y0||1)*(H-34)).toFixed(1);
+  return`<h3 style="margin-top:16px">1 saal ka performance (start = 100)</h3><div class="tw"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px">
+  <line x1="40" x2="${W-10}" y1="${py(100)}" y2="${py(100)}" stroke="var(--bd)" stroke-dasharray="4"/>
+  <text x="2" y="${py(y1)}" font-size="10" fill="var(--mu)" dy="4">${y1.toFixed(0)}</text><text x="2" y="${py(y0)}" font-size="10" fill="var(--mu)">${y0.toFixed(0)}</text>
+  ${ser.map((s,i)=>`<polyline fill="none" stroke="${cols[i]}" stroke-width="1.6" points="${s.map(p=>px(p[0])+','+py(p[1])).join(' ')}"/>`).join('')}</svg></div>
+  <div class="chips" style="margin-top:6px">${L.map((x,i)=>`<span style="font-size:12px"><b style="color:${cols[i]}">━</b> ${esc(x.h.name.replace(/ Fund$/,''))} <b class="${cls(ser[i][ser[i].length-1][1]-100)}">${sg(ser[i][ser[i].length-1][1]-100)}%</b></span>`).join('')}</div>`}
+
+// ---- edit / SIP / sale ----
+function ed(id){cur=S.h.find(h=>h.id==id);$('dt').textContent=cur.name+(cur.folio?' · '+cur.folio:'')+' — '+cur.units.toFixed(3)+' units, '+inr(cur.inv);$('ty').value='sip';hint();$('dg').showModal()}
+function hint(){
+  const t=$('ty').value;
+  if(t=='set'){$('eu').value=+cur.units.toFixed(3);$('ea').value=+cur.inv.toFixed(2);$('hi').textContent='Units aur kul invested amount seedha overwrite honge.'}
+  else{$('eu').value=$('ea').value='';
+    $('eu').placeholder=t=='sip'?'Naye units mile':'Kitne units becheh';
+    $('ea').placeholder=t=='sip'?'Amount invest kiya (₹)':'Sale se mile (₹, optional)';
+    $('hi').textContent=t=='sip'?'Units aur invested amount purane me jud jayenge.':'Cost average ke hisaab se ghategi; profit/loss "Realised P/L" me judega.'}}
+function applyEd(){
+  const t=$('ty').value,u=parseFloat($('eu').value),a=parseFloat($('ea').value)||0;
+  if(!(u>=0)||isNaN(u)){alert('Units daalo');return}
+  if(t=='sip'){cur.units+=u;cur.inv+=a}
+  else if(t=='sale'){
+    if(u>cur.units+1e-6){alert('Utne units nahi hain');return}
+    const c=cur.inv*(u/cur.units);cur.inv-=c;cur.units-=u;if(a>0)cur.real=(cur.real||0)+a-c}
+  else{cur.units=u;cur.inv=a}
+  if(cur.units<0.0005){cur.units=0;cur.inv=0}
+  save();$('dg').close();load();
+}
+function rm(){if(confirm('Ye fund list se hataye?')){S.h=S.h.filter(h=>h!==cur);save();$('dg').close();render()}}
+
+function exportJ(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='my-funds.json';a.click()}
+function importJ(el){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j.h)throw 0;S=j;save();load()}catch(e){alert('File galat hai')}};r.readAsText(el.files[0])}
+
+render();load();
+</script>
+</body>
+</html>
